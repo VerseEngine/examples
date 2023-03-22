@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1,viewport-fit=cover" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="stylesheet" href="./asset/style/index.css" />
+    <title>Demo</title>
+    <script>
+      // Workaround for a-assets timeout problem
+      Object.defineProperty(HTMLImageElement.prototype, "onload", {
+        configurable: true,
+        enumerable: true,
+        set: function (v) {
+          this._onload = v;
+          if (this.complete && this.currentSrc) {
+            v?.();
+            return;
+          }
+          this.addEventListener("load", v);
+        },
+        get: function () {
+          return this._onload;
+        },
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.1/dist/aframe-master.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-environment-component@1.3.2/dist/aframe-environment-component.min.js"></script>
+    <script src="dist/components.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
+    <script src="./ornament.js"></script>
+    <script>
+      AFRAME.registerComponent("ceiling-light", {
+        init: function () {
+          const jobs = [];
+          for (let x = -3; x <= 5; x += 3) {
+            for (let z = -3.5; z <= 5; z += 3) {
+              const wrap = document.createElement("a-entity");
+              wrap.setAttribute("position", `${x} 3 ${z}`);
+              wrap.classList.add("ceiling-light");
+              const el = document.createElement("a-entity");
+              el.setAttribute("mixin", "ceiling-light");
+
+              if (x === -3 && z === -3.5) {
+                el.setAttribute("rotation", "-45 80 0");
+              } else if (x === -3) {
+                el.setAttribute("light", "target: .counter");
+              } else if (x === 3 && z === -3.5) {
+                el.setAttribute("rotation", "-30 -50 60");
+              } else if (x === 3 && z === 2.5) {
+                el.setAttribute("rotation", "-55 -130 140");
+              } else {
+                el.setAttribute("rotation", "-90 0 0");
+              }
+
+              jobs.push(() => {
+                const el1 = document.createElement("a-entity");
+                el1.setAttribute("gltf-model", "#ceiling-light-obj");
+                el1.setAttribute("scale", "1 1 1");
+                wrap.appendChild(el1);
+              });
+              wrap.appendChild(el);
+              this.el.appendChild(wrap);
+            }
+          }
+          (async () => {
+            while (!document.querySelector("#ceiling-light-obj")) {
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+            }
+            jobs.forEach((f) => f());
+          })();
+        },
+      });
+      function setup() {
+        const scene = document.querySelector("a-scene");
+        let prev = 0;
+        scene.addEventListener("click", (e) => {
+          const el = e.detail?.intersectedEl;
+          if (el?.classList?.contains("movie-screen")) {
+            console.log("click", e);
+            const now = performance.now();
+            if (now - prev < 100) {
+              debugger;
+            }
+            prev = now;
+            if (el.components["material"].data.src.id === "video0") {
+              el.setAttribute("material", "src", "#video1");
+              document.querySelector("#video0").pause();
+              document.querySelector(".movie-light").setAttribute("light", "color", "#ff0000");
+            } else {
+              el.setAttribute("material", "src", "#video0");
+              document.querySelector("#video1").pause();
+              document.querySelector(".movie-light").setAttribute("light", "color", "#0000ff");
+            }
+            el.flushToDOM();
+          }
+        });
+        {
+          const obj = createOrnament0();
+          obj.position.set(-2.5, 1.8, 0);
+          scene.object3D.add(obj);
+        }
+        {
+          const obj = createOrnament1();
+          obj.position.set(-2.5, 1.8, 0);
+          scene.object3D.add(obj);
+        }
+      }
+
+      const loaded = () => {
+        const scene = document.querySelector("a-scene");
+        if (scene.hasLoaded) {
+          setup();
+        } else {
+          scene.addEventListener("loaded", setup);
+        }
+      };
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", loaded);
+      } else {
+        loaded();
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@1.0.9/lib/three-vrm.min.js"></script>
+    <script src="https://static.verseengine.cloud/examples/verse-three/dist/index.min.js"></script>
+    <script src="./setup-verse.js"></script>
+  </head>
+  <body>
+    <a-scene
+      debug="false"
+      vr-mode-ui="enabled: true"
+      raycaster="objects: .clickable"
+      renderer="colorManagement: true;"
+      loading-screen
+      ceiling-light
+      gltf-model="
+        basisTranscoderPath:https://cdn.jsdelivr.net/npm/super-three@0.147.1/examples/js/libs/basis/;
+        meshoptDecoderPath:https://cdn.jsdelivr.net/npm/super-three@0.147.1/examples/js/libs/meshopt_decoder.js
+      "
+    >
+      <a-entity light="type: ambient; color: #ff9f00; intensity: 0.5"></a-entity>
+
+      <a-plane
+        class="ground"
+        position="0 0 0"
+        side="double"
+        ambient-occlusion-map="#ground-ao"
+        src="#ground-src"
+        normal-map="#ground-normal"
+        metalness-map="#ground-metalness"
+        roughness-map="#ground-roughness"
+        roughness="0.7"
+        metalness="0"
+        repeat="10 10"
+        height="10"
+        width="10"
+        rotation="-90 0 0"
+      ></a-plane>
+      <a-entity id="cameraRig" position="3.2 0 3.7">
+        <a-entity id="headOffset">
+          <a-entity id="head" camera="far:20;near:0.1" position="0 1.6 0"></a-entity>
+        </a-entity>
+      </a-entity>
+      <a-assets timeout="5001">
+        <!-- https://polyhaven.com/a/wood_cabinet_worn_long -->
+        <img id="ground-roughness" src="asset/world/world1/wood_cabinet/wood_cabinet_worn_long_rough_1k.png" />
+        <img id="ground-metalness" src="asset/world/world1/wood_cabinet/wood_cabinet_worn_long_arm_1k.png" />
+        <!-- <img id="ground-dispplacement" src="asset/world/world1/wood_cabinet/wood_cabinet_worn_long_disp_1k.png" /> -->
+        <img id="ground-src" src="asset/world/world1/wood_cabinet/wood_cabinet_worn_long_diff_1k.png" />
+        <img id="ground-ao" src="asset/world/world1/wood_cabinet/wood_cabinet_worn_long_ao_1k.png" />
+        <img id="ground-normal" src="asset/world/world1/wood_cabinet/wood_cabinet_worn_long_nor_gl_1k.png" />
+      </a-assets>
+      <a-assets timeout="1"
+        ><!-- Always time out because of streaming. -->
+        <!-- https://www.pexels.com/ja-jp/video/856882/ -->
+        <video id="video0" data-hls-src="./asset/video/jellyfish/video.m3u8" width="1920" height="1080" autoplay loop="true" preload="metadata" crossorigin="anonymous" muted></video>
+        <!-- https://www.pexels.com/ja-jp/video/854749/ -->
+        <video id="video1" data-hls-src="./asset/video/bonfire/video.m3u8" width="1920" height="1080" autoplay loop="true" preload="metadata" crossorigin="anonymous" muted></video>
+      </a-assets>
+      <a-entity
+        class="clickable movie-screen"
+        material="shader: flat; src: #video0"
+        geometry="primitive: plane; width: 7.5; height: 2.8;"
+        position="-4.99 1.5 -0.9"
+        rotation="0 90 0"
+        play-on-click
+        visible="false"
+      >
+        <a-entity class="movie-light" light="type: point; color: #0000ff; intensity: 0.2" position="0.01 0 0"></a-entity>
+      </a-entity>
+      <!--
+        // Higher quality alternative methods
+        rectLight = new THREE.RectAreaLight('#0000ff', 3, 10, 3);
+        rectLight.position.set(-4.98, 1.5, 0);
+        rectLight.rotation.set(0, -90*Math.PI/180, 0);
+        AFRAME.scenes[0].object3D.add(rectLight);
+      -->
+    </a-scene>
+    <template id="lazy0">
+      <a-entity class="wall" position="0 1.5 -5" rotation="0 0 0" mixin="brick-wall" geometry="width: 10" material="repeat: 10 3"></a-entity>
+      <a-entity class="wall wall-r" mixin="brick-wall" position="5 1.5 0" rotation="180 90 0" geometry="width: 10" material="repeat: 10 3"></a-entity>
+      <a-entity class="wall wall-l" mixin="brick-wall" position="-5 1.5 0" rotation="0 90 0" geometry="width: 10" material="repeat: 10 3"></a-entity>
+      <a-entity class="wall wall-back" mixin="brick-wall" position="-2 1.5 3" rotation="0 180 0" geometry="width: 6" material="repeat: 6 3"></a-entity>
+      <a-entity class="wall wall-back" mixin="brick-wall" position="3 1.5 5" rotation="0 180 0" geometry="width: 4" material="repeat: 4 3"></a-entity>
+      <a-entity class="wall wall-l-door" mixin="brick-wall" position="1 1.5 3.15" rotation="0 90 0" geometry="width: 0.3" material="repeat: 0.3 3"></a-entity>
+      <a-entity class="wall wall-l-door" mixin="brick-wall" position="1 1.5 4.7" rotation="0 90 0" geometry="width: 0.8" material="repeat: 0.8 3"></a-entity>
+      <a-entity class="wall wall-l-door" mixin="brick-wall" position="1 2.75 4.2" rotation="0 90 0" geometry="width: 2; height:1" material="repeat: 2 1"></a-entity>
+      <a-mixin
+        id="brick-wall"
+        geometry="
+            primitive: plane;
+            height: 3;
+            width: 10;
+          "
+        material="
+            side: front;
+            ambient-occlusion-map: #brick-wall-ao;
+            src: #brick-wall-src;
+            normal-map: #brick-wall-normal;
+            metalness-map: #brick-wall-metalness;
+            roughness-map: #brick-wall-roughness;
+            roughness: 1;
+          "
+      ></a-mixin>
+      <a-assets timeout="5002">
+        <!-- https://polyhaven.com/a/red_bricks_04 -->
+        <img id="brick-wall-roughness" data-src-s="asset/world/world1/red_bricks/red_bricks_04_rough_1k.png" data-src="asset/world/world1/red_bricks/red_bricks_04_rough_2k.png" />
+        <img id="brick-wall-metalness" data-src-s="asset/world/world1/red_bricks/red_bricks_04_arm_1k.png" data-src="asset/world/world1/red_bricks/red_bricks_04_arm_2k.png" />
+        <!-- <img id="brick-wall-dispplacement" data-src-s="asset/world/world1/red_bricks/red_bricks_04_disp_1k.png" data-src="asset/world/world1/red_bricks/red_bricks_04_disp_2k.png"/> -->
+        <img id="brick-wall-src" data-src-s="asset/world/world1/red_bricks/red_bricks_04_diff_1k.png" data-src="asset/world/world1/red_bricks/red_bricks_04_diff_2k.png" />
+        <img id="brick-wall-ao" data-src-s="asset/world/world1/red_bricks/red_bricks_04_ao_1k.png" data-src="asset/world/world1/red_bricks/red_bricks_04_ao_2k.png" />
+        <img id="brick-wall-normal" data-src-s="asset/world/world1/red_bricks/red_bricks_04_nor_gl_1k.png" data-src="asset/world/world1/red_bricks/red_bricks_04_nor_gl_2k.png" />
+      </a-assets>
+    </template>
+    <template id="lazy1">
+      <a-entity
+        class="ceiling"
+        position="0 3 0"
+        rotation="90 0 0"
+        geometry="
+          primitive: plane;
+          height: 10;
+          width: 10;
+        "
+        material="
+          side: front;
+          roughness: 1;
+          metalness: 0;
+          repeat: 10 10;
+          src: #ceiling-src;
+          ambient-occlusion-map: #ceiling-ao;
+          normal-map: #ceiling-normal;
+          metalness-map: #ceiling-metalness;
+          roughness-map: #ceiling-roughness;
+        "
+      ></a-entity>
+      <a-assets timeout="5003">
+        <!-- https://polyhaven.com/a/concrete_wall_006 -->
+        <img id="ceiling-roughness" src="asset/world/world1/concrete_wall/concrete_wall_006_rough_1k.png" />
+        <img id="ceiling-metalness" src="asset/world/world1/concrete_wall/concrete_wall_006_arm_1k.png" />
+        <!-- <img id="ceiling-dispplacement" src="asset/world/world1/concrete_wall/concrete_wall_006_disp_1k.png" /> -->
+        <img id="ceiling-src" src="asset/world/world1/concrete_wall/concrete_wall_006_diff_1k.png" />
+        <img id="ceiling-ao" src="asset/world/world1/concrete_wall/concrete_wall_006_ao_1k.png" />
+        <img id="ceiling-normal" src="asset/world/world1/concrete_wall/concrete_wall_006_nor_gl_1k.png" />
+      </a-assets>
+    </template>
+    <template id="lazy2">
+      <!-- Piano jazz station
+      http://dir.xiph.org/search?cursor=eyJzIjoiMjAyMi0wOS0xM1QwNjoxMjoyMC41Mzg2MzFaIiwiaSI6IjJiNGQ1NTE1LWE0MTYtNGIzZS05YWJmLWEyZWJkMjFjYTdjYSJ9&q=jazz -->
+      <a-entity
+        class="jukebox collider"
+        stream-sound="src: https://radio108.ru:8150/stream; max-distance:50; volume:0"
+        play-on-click
+        position="4.2 0 -4.7"
+        gltf-model="#jukebox-obj"
+        scale="0.8 0.8 0.8"
+      ></a-entity>
+      <a-entity class="ceiling-fan" position="-1.5 3 -2" mixin="ceiling-fan"></a-entity>
+      <a-entity class="ceiling-fan" position="2.5 3 2" mixin="ceiling-fan"></a-entity>
+      <a-entity class="ceiling-fan" position="0.5 3 0" mixin="ceiling-fan"></a-entity>
+
+      <a-entity class="wine-barrels collider" position="-1.844 0 -4.39" rotation="0 -90 0" scale="0.7 0.7 0.7" gltf-model="#wine-barrels-obj"></a-entity>
+      <a-entity class="sofa collider" position="4.3 0 -0.32" rotation="0 -90 0" gltf-model="#sofa-obj"></a-entity>
+      <a-entity class="door wall" position="0.92 0.031 3.8" rotation="0 180 0" scale="0.023 0.023 0.023" gltf-model="#door-obj"></a-entity>
+      <a-entity class="table collider" position="0.38 0.58 0.9" scale="0.5 0.7 0.5" rotation="0 0 0" gltf-model="#table-obj"></a-entity>
+      <a-entity class="dartboard" position="-0.416 1.74 3.046" scale="0.001 0.001 0.001" rotation="0 180 0" gltf-model="#dartboard-obj"></a-entity>
+      <a-mixin id="ceiling-fan" gltf-model="#ceiling-fan-obj" scale="0.07 0.07 0.07" animation-mixer="clip: Plane.003Action; timeScale:0.05"></a-mixin>
+      <a-mixin
+        id="ceiling-light"
+        light="
+            type: spot; 
+            color: #ff9f00; 
+            intensity: 0.7; 
+            penumbra: 0.5; 
+            decay: 1;
+          "
+      ></a-mixin>
+      <a-assets timeout="5004">
+        <!-- https://sketchfab.com/3d-models/52-bloxwood-renaissance-ceiling-fan-57091b05c04940a381b4049cdea6e30c -->
+        <a-asset-item id="ceiling-fan-obj" src="asset/world/world1/ceilingfan/52_bloxwood_renaissance_ceiling_fan.min.glb"></a-asset-item>
+        <!-- https://sketchfab.com/3d-models/light-fixture-ceiling-recessed-269fd427629548a8a0949a6493c5b223 -->
+        <a-asset-item id="ceiling-light-obj" src="asset/world/world1/light_fixture_-_ceiling_recessed.min.glb"></a-asset-item>
+        <!-- https://sketchfab.com/3d-models/chesterfield-sofa-66ba4225efaa4de59d9a9b7086363199 -->
+        <a-asset-item id="sofa-obj" src="asset/world/world1/chesterfield-sofa.min.glb"></a-asset-item>
+        <!-- https://sketchfab.com/3d-models/venice-door-3d-scan-asset-2db88b711d104a9688ff9cc4cb6482e2 -->
+        <a-asset-item id="door-obj" src="asset/world/world1/venice_door_3d_scan_asset.min.glb"></a-asset-item>
+        <!-- https://sketchfab.com/3d-models/jukebox-8397d23c1b1c40ea867ca1a44667be37 -->
+        <a-asset-item id="jukebox-obj" data-src-s="asset/world/world1/jukebox.min.glb" data-src="asset/world/world1/jukebox.glb"></a-asset-item>
+        <!-- https://sketchfab.com/3d-models/wooden-bar-table-with-steel-footboard-a711a387e3534814a86bce5892e1956a -->
+        <a-asset-item
+          id="table-obj"
+          data-src-s="asset/world/world1/wooden_bar_table_with_steel_footboard.min.glb"
+          data-src="asset/world/world1/wooden_bar_table_with_steel_footboard.glb"
+        ></a-asset-item>
+        <!-- https://sketchfab.com/3d-models/winmau-blade-5-dart-board-d2c6e78bf0a944c8870bf6db91a4ba22 -->
+        <a-asset-item id="dartboard-obj" src="asset/world/world1/winmau_blade_5_dart_board.min.glb"></a-asset-item>
+        <!-- https://sketchfab.com/3d-models/wine-barrels-with-shelf-0269ed15af394684977a1f9f45484077 -->
+        <a-asset-item id="wine-barrels-obj" data-src-s="asset/world/world1/wine_barrels_with_shelf.min.glb" data-src="asset/world/world1/wine_barrels_with_shelf.m.glb"></a-asset-item>
+      </a-assets>
+    </template>
+  </body>
+</html>

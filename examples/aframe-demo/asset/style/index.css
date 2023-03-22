@@ -1,0 +1,10 @@
+body {
+  margin: 0;
+  overflow: hidden;
+}
+a-scene {
+  z-index: 1;
+}
+.a-enter-ar {
+  display: none;
+}
