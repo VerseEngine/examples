@@ -62,8 +62,8 @@
 
         const adapter = new VerseThree.AFrameEnvAdapter(
           scene,
-          document.getElementById("cameraRig").object3D,
           document.getElementById("headOffset").object3D,
+          document.getElementById("cameraRig").object3D,
           () => collisionBoxes,
           () => collisionObjects,
           () => teleportTargetObjects,
