@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { Sky } from "three/examples/jsm/objects/Sky.js";
+import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
 import { setupVerse } from "./setup-verse";
 
 function setupScene(ticks) {
@@ -14,6 +15,30 @@ function setupScene(ticks) {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
+
+  if ("xr" in navigator) {
+    navigator.xr.isSessionSupported("immersive-vr").then(function (supported) {
+      if (supported) {
+        renderer.xr.enabled = true;
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            if (renderer.xr.isPresenting) {
+              renderer.xr.getSession()?.end();
+            }
+          }
+        });
+        const vrButton = VRButton.createButton(renderer);
+        document.body.appendChild(vrButton);
+      }
+    });
+  } else {
+    if (window.isSecureContext === false) {
+      console.warn("webxr needs https");
+    } else {
+      console.warn("webxr not available");
+    }
+  }
 
   const scene = new THREE.Scene();
 
