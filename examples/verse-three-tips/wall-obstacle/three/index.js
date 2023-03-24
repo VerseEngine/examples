@@ -26,7 +26,10 @@ function setupScene(ticks) {
   camera.position.set(0.0, 1.6, 0);
   scene.add(camera);
 
-  scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+  const light = new THREE.DirectionalLight(0xffffff, 0.6);
+  light.position.set(0, 10, -10).normalize();
+  scene.add(light);
 
   {
     const sky = new Sky();
@@ -69,6 +72,32 @@ function setupScene(ticks) {
 function main() {
   const ticks = [];
   const { scene, renderer, camera, ground } = setupScene(ticks);
+  const wall = new THREE.Mesh(
+    new THREE.BoxGeometry(5, 4, 2),
+    new THREE.MeshStandardMaterial({
+      side: THREE.DoubleSide,
+      color: 0xff6347,
+    })
+  );
+  wall.position.set(-2, 0, -5);
+  const ground1 = new THREE.Mesh(
+    new THREE.BoxGeometry(5, 0.5, 2),
+    new THREE.MeshStandardMaterial({
+      side: THREE.DoubleSide,
+      color: 0x9acd32,
+    })
+  );
+  ground1.position.set(2, 0.25, -4);
+  scene.add(wall, ground1);
+  const ground2 = new THREE.Mesh(
+    new THREE.BoxGeometry(5, 0.5, 2),
+    new THREE.MeshStandardMaterial({
+      side: THREE.DoubleSide,
+      color: 0x9acd32,
+    })
+  );
+  ground2.position.set(4, 0.75, -4);
+  scene.add(wall, ground1, ground2);
 
   camera.position.set(0.0, 1.6, 0);
   const cameraContainer = new THREE.Object3D();
@@ -77,8 +106,11 @@ function main() {
   player.add(cameraContainer);
   scene.add(player);
 
-  const teleportTargetObjects = [ground];
-  const collisionBoxes = [new THREE.Box3().setFromObject(ground)];
+  const collisionObjects = [wall];
+  const teleportTargetObjects = [ground, ground1, ground2];
+  const collisionBoxes = [...collisionObjects, ...teleportTargetObjects].map(
+    (o) => new THREE.Box3().setFromObject(o)
+  );
 
   setupVerse(
     scene,
@@ -87,6 +119,7 @@ function main() {
     cameraContainer,
     player,
     collisionBoxes,
+    collisionObjects,
     teleportTargetObjects
   ).then((tick) => {
     ticks.push(tick);

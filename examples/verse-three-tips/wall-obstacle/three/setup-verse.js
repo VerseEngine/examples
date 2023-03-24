@@ -28,6 +28,7 @@ export const setupVerse = async (
   cameraContainer,
   player,
   collisionBoxes,
+  collisionObjects,
   teleportTargetObjects
 ) => {
   const adapter = new VerseThree.DefaultEnvAdapter(
@@ -37,7 +38,7 @@ export const setupVerse = async (
     cameraContainer,
     player,
     () => collisionBoxes,
-    () => [],
+    () => collisionObjects,
     () => teleportTargetObjects,
     {
       isLowSpecMode: true,
