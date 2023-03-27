@@ -113,7 +113,6 @@ function main() {
     })
   );
   ground1.position.set(2, 0.25, -4);
-  scene.add(wall, ground1);
   const ground2 = new THREE.Mesh(
     new THREE.BoxGeometry(5, 0.5, 2),
     new THREE.MeshStandardMaterial({
