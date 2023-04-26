@@ -5,12 +5,22 @@
       content="width=device-width, initial-scale=1,viewport-fit=cover"
     />
     <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      canvas {
+        user-select: none;
+        -webkit-user-select: none;
+      }
       .a-enter-ar {
         display: none;
       }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.1/dist/aframe-master.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/aframe-environment-component@1.3.2/dist/aframe-environment-component.min.js"></script>    
+    <script src="https://cdn.jsdelivr.net/npm/aframe-environment-component@1.3.2/dist/aframe-environment-component.min.js"></script>
     <script>
       if (!window.__extendAnimationLoop) {
         window.__extendAnimationLoop = () => {};

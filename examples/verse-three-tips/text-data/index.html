@@ -8,6 +8,15 @@
       body {
         margin: 0;
         overflow: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      canvas {
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      input[type="text"] {
+        font-size: 12pt;
       }
       #text-pane {
         position: absolute;
@@ -16,6 +25,7 @@
         display: flex;
         flex-direction: column;
         width: fit-content;
+        max-width: 80vw;
         gap: 0.5rem;
         background: rgba(221, 186, 255, 0.5);
         padding: 0.5rem;
