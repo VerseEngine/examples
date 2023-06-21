@@ -1,7 +1,7 @@
 (() => {
   const { VerseThree, THREE } = window;
   const VERSE_WASM_URL =
-    "https://static.verseengine.cloud/examples/verse-three/dist/verse_core_bg.wasm";
+    "https://cdn.jsdelivr.net/npm/@verseengine/verse-three@1.0.0/dist/verse_core_bg.wasm";
   const ENTRANCE_SERVER_URL = "https://entrance.verseengine.cloud";
   const ANIMATION_MAP = {
     idle: "../../asset/animation/idle.fbx",
