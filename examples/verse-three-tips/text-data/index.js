@@ -2,6 +2,8 @@ import * as THREE from "three";
 import { Sky } from "three/examples/jsm/objects/Sky.js";
 import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
 import { setupVerse } from "./setup-verse";
+import { CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRenderer.js";
+import { CSS3DObject } from "three/examples/jsm/renderers/CSS3DRenderer.js";
 
 function setupScene(ticks) {
   const renderer = new THREE.WebGLRenderer();
@@ -10,10 +12,18 @@ function setupScene(ticks) {
   renderer.setPixelRatio(window.devicePixelRatio);
   document.body.appendChild(renderer.domElement);
 
+  const labelRenderer = new CSS3DRenderer();
+  labelRenderer.setSize(window.innerWidth, window.innerHeight);
+  labelRenderer.domElement.style.position = "absolute";
+  labelRenderer.domElement.style.top = "0px";
+  labelRenderer.domElement.style.pointerEvents = "none";
+  document.body.appendChild(labelRenderer.domElement);
+
   window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.setSize(window.innerWidth, window.innerHeight);
   });
 
   if ("xr" in navigator) {
@@ -88,6 +98,7 @@ function setupScene(ticks) {
     const dt = clock.getDelta();
     ticks.forEach((f) => f(dt));
     renderer.render(scene, camera);
+    labelRenderer.render(scene, camera);
   };
   renderer.setAnimationLoop(animate);
 
@@ -148,6 +159,22 @@ function setupTextForm(player, adapter) {
   adapter.addTextDataChangedListener((otherPerson, textData) => {
     const data = JSON.parse(textData)?.textMessage;
     outputMessage(data);
+
+    if (!otherPerson.nameLabel) {
+      const label = document.createElement("div");
+      label.className = "name-label";
+      otherPerson.nameLabel = label;
+
+      const bbox = new THREE.Box3().setFromObject(otherPerson.object3D);
+
+      const cssObject = new CSS3DObject(label);
+      cssObject.position.set(0, bbox.max.y - bbox.min.y + 0.3, 0); // Set the position above the character
+      cssObject.scale.setScalar(0.01);
+      cssObject.rotation.set(0, THREE.MathUtils.degToRad(180), 0);
+      cssObject.visible = true;
+      otherPerson.object3D.add(cssObject);
+    }
+    otherPerson.nameLabel.textContent = data.nickname;
   });
 }
 
