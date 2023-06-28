@@ -156,25 +156,34 @@ function setupTextForm(player, adapter) {
     player.setTextData(JSON.stringify({ textMessage: data }));
     outputMessage(data);
   });
-  adapter.addTextDataChangedListener((otherPerson, textData) => {
-    const data = JSON.parse(textData)?.textMessage;
-    outputMessage(data);
-
+  const updateNameLabel = (otherPerson) => {
     if (!otherPerson.nameLabel) {
       const label = document.createElement("div");
       label.className = "name-label";
       otherPerson.nameLabel = label;
 
-      const bbox = new THREE.Box3().setFromObject(otherPerson.object3D);
-
       const cssObject = new CSS3DObject(label);
-      cssObject.position.set(0, bbox.max.y - bbox.min.y + 0.3, 0); // Set the position above the character
       cssObject.scale.setScalar(0.01);
       cssObject.rotation.set(0, THREE.MathUtils.degToRad(180), 0);
-      cssObject.visible = true;
+      cssObject.visible = false;
+      otherPerson.cssObject = cssObject;
       otherPerson.object3D.add(cssObject);
     }
+    const bbox = new THREE.Box3().setFromObject(otherPerson.avatar.object3D);
+    otherPerson.cssObject.position.set(0, bbox.max.y - bbox.min.y + 0.3, 0); // Set the position above the character
+  };
+  adapter.addTextDataChangedListener((otherPerson, textData) => {
+    const data = JSON.parse(textData)?.textMessage;
+    outputMessage(data);
+
+    updateNameLabel(otherPerson);
+    if (!otherPerson.cssObject.visible) {
+      otherPerson.cssObject.visible = true;
+    }
     otherPerson.nameLabel.textContent = data.nickname;
+  });
+  adapter.addOtherPersonAvatarChangedListener((otherPerson) => {
+    updateNameLabel(otherPerson);
   });
 }
 
